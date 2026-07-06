@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="logo">Anura Furnitures - Premium Furniture Store</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #e67e22;
+        }
+
+        .hero {
+            height: 520px;
+            background: linear-gradient(rgba(44,62,80,0.75), rgba(44,62,80,0.65)), url('/images/hero.jpg') center/cover no-repeat;
+            display: flex;
+            align-items: center;
+            color: white;
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .hero h1 {
+            font-size: 3.8rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+            text-shadow: 0 3px 12px rgba(0,0,0,0.6);
+        }
+
+        .hero p {
+            font-size: 1.45rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+
+        .btn-hero {
+            background: var(--accent);
+            color: white;
+            padding: 16px 45px;
+            font-size: 1.25rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            box-shadow: 0 6px 20px rgba(230,126,34,0.4);
+            transition: all 0.3s;
+        }
+
+        .btn-hero:hover {
+            background: #d35400;
+            transform: translateY(-4px);
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 28px;
+            padding: 40px 0;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+        }
+
+        .product-info {
+            padding: 16px;
+        }
+
+        .price {
+            color: var(--accent);
+            font-size: 1.55rem;
+            font-weight: 700;
+            margin: 8px 0 4px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.4rem;
+            margin: 50px 0 30px;
+            color: var(--primary);
+        }
+
+        .no-products {
+            text-align: center;
+            padding: 60px 20px;
+            font-size: 1.3rem;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==================== TOP NAVBAR ==================== -->
+<div class="top-navbar">
+    <div class="logo">Anura Furnitures</div>
+
+    <!-- No search bar here anymore -->
+
+    <div class="navbar-right" id="auth-section">
+        <!-- Filled by JavaScript in main.js -->
+    </div>
+</div>
+
+<!-- ==================== MAIN NAVIGATION MENU ==================== -->
+<div class="second-navbar">
+    <a href="/shop.html" class="dropdown">
+        ☰ All Categories
+        <div class="dropdown-content">
+            <a href="/shop.html?category=living">Living Room Furniture</a>
+            <a href="/shop.html?category=bedroom">Bedroom Furniture</a>
+            <a href="/shop.html?category=dining">Dining Room Furniture</a>
+            <a href="/shop.html?category=office">Office Furniture</a>
+            <a href="/shop.html?category=outdoor">Outdoor Furniture</a>
+            <a href="/shop.html?category=kids">Kids Furniture</a>
+        </div>
+    </a>
+
+    <a href="/shop.html?new=true">New Arrivals</a>
+    <a href="/shop.html?best=true">Best Sellers</a>
+    <a href="/offers.html">🎟️ Special Offers</a>
+    <a href="/track-order.html">📦 Track Your Order</a>
+    <a href="/tickets.html">🎟️ My Tickets</a>
+</div>
+
+<!-- PROMO BANNER (Abans style) -->
+<div id="promoBanner" style="background: linear-gradient(90deg, #5D4037, #8D5524); color: white; padding: 25px 40px; display: flex; align-items: center; gap: 30px; flex-wrap: wrap; position: relative; overflow: hidden;">
+    <div style="flex: 1; min-width: 300px;">
+        <h1 id="bannerTitle" style="font-size: 2.8rem; margin:0; line-height: 1.1;">Special Offer</h1>
+        <p id="bannerDesc" style="font-size: 1.3rem; margin: 10px 0 15px;"></p>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span id="bannerDiscount" style="background: #e74c3c; color: white; padding: 8px 20px; border-radius: 50px; font-size: 1.4rem; font-weight: bold;"></span>
+            <a id="bannerShopBtn" href="/offers.html"
+               style="background: #C8A951; color: #5D4037; padding: 14px 32px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 1.2rem;">
+                SHOP NOW →
+            </a>
+        </div>
+    </div>
+    <div id="promoProducts" style="flex: 2; display: flex; gap: 15px; flex-wrap: wrap;"></div>
+</div>
+
+<!-- ==================== UTILITY BAR ==================== -->
+<div class="utility-bar">
+    <div>
+        <a href="/track-order.html" style="text-decoration:none; color:#5D4037;">
+            📦 <strong>Track Your Order</strong>
+        </a>
+        📞 Call Us: <strong>+94 778 825 325</strong>
+    </div>
+    <div>
+        📍 Showroom Locations  | 
+        🚚 Free Delivery on Orders Above Rs. 50,000
+    </div>
+</div>
+
+<!-- Hero Banner -->
+<div class="hero">
+    <div class="hero-content">
+        <h1 data-i18n="hero.title">Elegant Comfort for Modern Living</h1>
+        <p data-i18n="hero.subtitle">Discover handcrafted furniture that combines timeless design with everyday luxury.</p>
+        <a href="/shop.html" class="btn-hero" data-i18n="hero.btn">Explore Collection</a>
+    </div>
+</div>
+
+<!-- Featured Products -->
+<div class="container">
+    <h2 class="section-title" data-i18n="nav.shop">Featured Products</h2>
+    <div class="product-grid" id="featuredProducts"></div>
+</div>
+
+<script src="/js/main.js"></script>
+<script src="/js/i18n.js"></script>
+<script>
+    function viewProduct(id) {
+        window.location.href = `/product-details.html?id=${id}`;
+    }
+
+    async function loadFeatured() {
+        try {
+            const res = await fetch('/api/products');
+            if (!res.ok) throw new Error('Failed to load products');
+            const products = await res.json();
+
+            let html = '';
+            products.slice(0, 8).forEach(p => {
+                html += `
+                    <div class="product-card" onclick="viewProduct(${p.productId})">
+                        <img src="${p.imageUrls?.[0] || '/images/placeholder.jpg'}" alt="${p.name}">
+                        <div class="product-info">
+                            <h4>${p.name}</h4>
+                            <p class="price">Rs. ${Number(p.price).toLocaleString('si-LK')}</p>
+                            ${p.averageRating ? `<p style="color:#e67e22;">★ ${p.averageRating.toFixed(1)}</p>` : ''}
+                        </div>
+                    </div>`;
+            });
+
+            if (products.length === 0) {
+                html = '<p class="no-products">No featured products available at the moment.</p>';
+            }
+
+            document.getElementById('featuredProducts').innerHTML = html;
+        } catch (err) {
+            console.error(err);
+            document.getElementById('featuredProducts').innerHTML =
+                '<p class="no-products">Error loading featured products. Please try again later.</p>';
+        }
+    }
+
+    window.onload = async () => {
+        await applyLanguage();
+        await checkAuth();
+        await loadFeatured();
+        await loadCartCount();
+    };
+
+        async function loadPromoBanner() {
+        try {
+        const res = await fetch('/api/offers');
+        if (!res.ok) return;
+        const offers = await res.json();
+        if (offers.length === 0) return;
+
+        const offer = offers[0]; // show the first active offer
+
+        document.getElementById('bannerTitle').textContent = offer.title;
+        document.getElementById('bannerDesc').textContent = offer.description || "Limited time offer on premium furniture";
+        document.getElementById('bannerDiscount').innerHTML = `Up to <strong>${offer.discountPercentage}% OFF</strong>`;
+
+        // Optional: show some product images (you can enhance later)
+        document.getElementById('promoProducts').innerHTML = `
+            <div style="color:white; font-size:1.1rem; opacity:0.9;">🎟️ ${offer.title}</div>
+        `;
+    } catch(e) {}
+    }
+
+        window.onload = async () => {
+        await applyLanguage();
+        await checkAuth();
+        await loadPromoBanner();   // ← NEW
+        // ... your existing code
+    };
+
+</script>
+
+</body>
+</html>

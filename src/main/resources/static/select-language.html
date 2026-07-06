@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title data-i18n="select.lang.title">Select Your Language – Anura Furnitures</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body { background: #f8f9fa; font-family: 'Segoe UI', system-ui, sans-serif; }
+    .center-box {
+      max-width: 420px;
+      margin: 120px auto;
+      padding: 40px 32px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    h2 { color: #2c3e50; margin-bottom: 24px; font-weight: 700; }
+    select {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin: 16px 0 24px;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #e67e22;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button:hover { background: #d35400; }
+  </style>
+</head>
+<body>
+
+<div class="center-box">
+  <h2 data-i18n="select.lang.title">Welcome! Please select your preferred language</h2>
+
+  <select id="langSelect">
+    <option value="en">English</option>
+    <option value="si">Sinhala</option>
+    <option value="ta">Tamil</option>
+  </select>
+
+  <button id="saveLanguage" data-i18n="select.continue">Continue</button>
+</div>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/main.js"></script>
+<script>
+  document.getElementById('saveLanguage').addEventListener('click', async () => {
+    const lang = document.getElementById('langSelect').value;
+
+    try {
+      const resp = await fetch('/api/user/set-language', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ preferredLanguage: lang })
+      });
+
+      if (resp.ok) {
+        localStorage.setItem('preferredLanguage', lang);
+        window.location.href = '/';
+      } else {
+        alert('Could not save language preference. Please try again.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Network error. Please check your connection.');
+    }
+  });
+</script>
+</body>
+</html>

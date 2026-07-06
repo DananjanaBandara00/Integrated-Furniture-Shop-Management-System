@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Anura Furnitures</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .dashboard { display: flex; min-height: 100vh; background: #f8f9fa; }
+        .sidebar { width: 260px; background: #2c3e50; color: white; padding: 2rem 1rem; position: fixed; height: 100vh; overflow-y: auto; }
+        .sidebar a { display: block; padding: 14px 20px; color: white; text-decoration: none; margin: 6px 0; border-radius: 8px; font-size: 1.05rem; }
+        .sidebar a.active, .sidebar a:hover { background: #e67e22; }
+        .main-content { margin-left: 260px; flex: 1; padding: 2rem; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #2c3e50; color: white; }
+        tr:hover { background: #f8f9fa; }
+        .btn-small { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; margin-right: 5px; }
+        .btn-refund { background: #e74c3c; color: white; }
+        .status-select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ddd; }
+        .filter-bar { margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .report-btn { padding: 12px 24px; background: #e67e22; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-left: auto; }
+        .no-data { text-align: center; padding: 60px 20px; color: #777; font-size: 1.1rem; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+        .product-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .product-card img { width: 100%; height: 200px; object-fit: cover; }
+        .product-info { padding: 1rem; }
+        input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 12px; }
+        #submitBtn { padding: 12px 30px; background: #e67e22; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1.05rem; }
+        .btn-edit { background:#3498db; color:white; border:none; padding:6px 12px; border-radius:4px; margin-right:5px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 3000; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 420px; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="sidebar">
+        <h2 style="color:#e67e22; text-align:center; margin-bottom: 2rem;">Admin Panel</h2>
+        <a href="#" class="active" data-tab="orders">📦 Orders</a>
+        <a href="#" data-tab="payments">💰 Payments & Transactions</a>
+        <a href="#" data-tab="products">🛍️ Products</a>
+        <a href="#" data-tab="categories">📂 Categories</a>
+        <a href="#" data-tab="deliveries">🚚 Deliveries</a>
+        <a href="#" data-tab="offers">🎟️ Offers & Promotions</a>
+        <a href="#" data-tab="reviews">⭐ Customer Feedbacks</a>
+        <a href="#" data-tab="tickets">🎟️ Support Tickets</a>
+    </div>
+
+    <div class="main-content">
+        <!-- ORDERS TAB (Unchanged) -->
+        <div id="orders" class="profile-section active">
+            <h2>Order Management</h2>
+            <div id="ordersContainer">
+                <table id="ordersTable">
+                    <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Email</th>
+                        <th>Total</th>
+                        <th>Order Status</th>
+                        <th>Payment Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PAYMENTS TAB (Unchanged) -->
+        <div id="payments" class="profile-section" style="display:none;">
+            <h2>Payments & Transactions</h2>
+            <div class="filter-bar">
+                <input type="text" id="paymentSearch" placeholder="Search by Order ID or Customer" style="padding:12px; width:320px;">
+                <select id="statusFilter" style="padding:12px;">
+                    <option value="">All Status</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="SUCCESS">Success</option>
+                    <option value="FAILED">Failed</option>
+                    <option value="REFUNDED">Refunded</option>
+                </select>
+                <button onclick="loadPayments()" style="padding:12px 20px;">Refresh</button>
+                <button onclick="generateMonthlyReport()" class="report-btn">📊 Generate Monthly Sales Report</button>
+            </div>
+            <div id="paymentsContainer">
+                <table id="paymentsTable">
+                    <thead>
+                    <tr>
+                        <th>Payment ID</th>
+                        <th>Order ID</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Method</th>
+                        <th>Card</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PRODUCTS TAB (Unchanged) -->
+        <div id="products" class="profile-section" style="display:none;">
+            <h2>Manage Products</h2>
+            <form id="productForm" enctype="multipart/form-data" style="background:white; padding:25px; border-radius:12px; margin-bottom:30px;">
+                <input type="hidden" id="productId">
+                <input type="text" id="name" placeholder="Product Name *" required>
+                <textarea id="desc" placeholder="Description" rows="4"></textarea>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <input type="number" id="price" placeholder="Price *" step="0.01" required>
+                    <input type="number" id="stock" placeholder="Stock *" required>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <input type="text" id="material" placeholder="Material">
+                    <input type="text" id="color" placeholder="Color">
+                </div>
+                <input type="text" id="dimensions" placeholder="Dimensions">
+                <select id="categoryId" required>
+                    <option value="">Select Category *</option>
+                </select>
+                <input type="file" id="images" multiple accept="image/*">
+                <small style="color:#666;">Leave empty if you don't want to change images</small><br><br>
+                <button type="button" id="submitBtn">Add Product</button>
+            </form>
+            <div id="productList" class="product-grid"></div>
+        </div>
+
+        <!-- CATEGORIES TAB (Unchanged) -->
+        <div id="categories" class="profile-section" style="display:none;">
+            <h2>Manage Categories</h2>
+            <div style="background:white; padding:25px; border-radius:12px;">
+                <input type="text" id="catName" placeholder="New Category Name" style="padding:12px; width:70%;">
+                <button onclick="addCategory()" style="padding:12px 20px; background:#2c3e50; color:white; border:none;">Add Category</button>
+                <div id="catList" style="margin-top:25px;"></div>
+            </div>
+        </div>
+
+        <!-- DELIVERIES TAB (Unchanged) -->
+        <div id="deliveries" class="profile-section" style="display:none;">
+            <h2>🚚 Delivery Management</h2>
+            <h3>📌 Confirmed Orders Ready for Delivery</h3>
+            <table id="pendingOrdersTable" style="width:100%; margin-bottom:40px;">
+                <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <h3>📋 All Deliveries</h3>
+            <table id="deliveriesTable" style="width:100%;">
+                <thead>
+                <tr>
+                    <th>Delivery ID</th>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Tracking Code</th>
+                    <th>Partner</th>
+                    <th>Delivery Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- OFFERS TAB -->
+        <div id="offers" class="profile-section" style="display:none;">
+            <h2>🎟️ Manage Offers</h2>
+            <button onclick="showAddOfferModal()" class="btn-primary" style="margin-bottom:15px;">+ New Offer</button>
+            <table id="offersTable">
+                <thead>
+                <tr><th>Title</th><th>Discount</th><th>Start</th><th>End</th><th>Status</th><th>Actions</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- Offer Create/Edit Modal -->
+        <div id="offerModal" class="modal">
+            <div class="modal-content">
+                <h3 id="offerModalTitle">Create New Offer</h3>
+                <form id="offerForm">
+                    <input type="text" id="offerTitle" placeholder="Offer Title (e.g. New Year Sale)" required>
+                    <textarea id="offerDesc" placeholder="Description (optional)" rows="3"></textarea>
+                    <input type="number" id="discount" placeholder="Discount Percentage (e.g. 25)" step="0.1" required>
+                    <input type="date" id="startDate" placeholder="Start Date">
+                    <input type="date" id="endDate" placeholder="End Date">
+                    <label>
+                        <input type="checkbox" id="isActive" checked> Active
+                    </label>
+                    <div style="margin-top:20px; text-align:right;">
+                        <button type="button" onclick="document.getElementById('offerModal').style.display='none'" style="margin-right:10px;">Cancel</button>
+                        <button type="button" onclick="saveOffer()" class="btn-primary">Save Offer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Assign Products Modal -->
+        <div id="assignModal" class="modal">
+            <div class="modal-content" style="width:600px; max-height:80vh; overflow-y:auto;">
+                <h3>Assign Products to Offer</h3>
+                <div id="productListAssign" style="max-height:500px; overflow-y:auto;"></div>
+                <div style="margin-top:20px; text-align:right;">
+                    <button onclick="document.getElementById('assignModal').style.display='none'" class="btn-primary">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- REVIEWS / FEEDBACK TAB -->
+        <div id="reviews" class="profile-section" style="display:none;">
+            <h2>Customer Feedback Management</h2>
+
+            <div style="margin-bottom:20px;">
+                <button onclick="generateFeedbackReport()"
+                        class="report-btn"
+                        style="background:#e67e22; color:white; padding:12px 24px; border:none; border-radius:8px; font-weight:600;">
+                    📊 Generate Feedback Report (PDF)
+                </button>
+            </div>
+
+            <table id="reviewsTable" style="width:100%; border-collapse:collapse; background:white; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+                <thead>
+                <tr>
+                    <th style="background:#2c3e50; color:white; padding:14px;">Review ID</th>
+                    <th style="background:#2c3e50; color:white; padding:14px;">Product</th>
+                    <th style="background:#2c3e50; color:white; padding:14px;">Customer</th>
+                    <th style="background:#2c3e50; color:white; padding:14px;">Rating</th>
+                    <th style="background:#2c3e50; color:white; padding:14px;">Comment</th>
+                    <th style="background:#2c3e50; color:white; padding:14px;">Date</th>
+                    <th style="background:#2c3e50; color:white; padding:14px;">Actions</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- ====================== SUPPORT TICKETS TAB ====================== -->
+        <div id="tickets" class="profile-section" style="display:none;">
+            <h2>🎟️ Support Ticket Management</h2>
+
+            <div style="margin-bottom:20px; display:flex; gap:10px; align-items:center;">
+                <input type="text" id="ticketSearch" placeholder="Search by Ticket Code or Subject"
+                       style="padding:12px; width:380px; font-size:1rem;">
+                <button onclick="loadAllTickets()" style="padding:12px 20px; background:#e67e22; color:white; border:none; border-radius:6px; cursor:pointer;">
+                    Search
+                </button>
+            </div>
+
+            <table id="ticketsTable">
+                <thead>
+                <tr>
+                    <th>Ticket Code</th>
+                    <th>Customer</th>
+                    <th>Subject</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- Modal (Unchanged) -->
+        <div id="createModal" class="modal">
+            <div class="modal-content">
+                <h3>Create New Delivery</h3>
+                <input type="hidden" id="modalOrderId">
+                <label>Delivery Date:</label>
+                <input type="date" id="modalDate" required style="margin-bottom:15px;">
+                <label>Delivery Partner:</label>
+                <input type="text" id="modalPartner" placeholder="e.g. Speedy Delivery, SriPost" required>
+                <button onclick="createDelivery()" style="margin-top:20px; width:100%; padding:12px; background:#27ae60; color:white; border:none; border-radius:6px; font-weight:600;"> Create Delivery & Send Tracking </button>
+                <button onclick="closeModal()" style="margin-top:10px; width:100%; padding:12px; background:#95a5a6; color:white; border:none; border-radius:6px;"> Cancel </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="/js/main.js"></script>
+<script>
+    let editId = null;
+    let isRefunding = false;
+    async function checkAdmin() {
+        try {
+            const res = await fetch('/api/user/profile', { credentials: 'include' });
+            if (!res.ok) throw new Error();
+            const user = await res.json();
+            if (user.role !== 'ADMIN') {
+                alert("Access Denied! Only admins allowed.");
+                window.location.href = '/';
+            }
+        } catch (e) {
+            alert("Please login as admin");
+            window.location.href = '/';
+        }
+    }
+
+    // ====================== ORDERS (Unchanged) ======================
+    async function loadOrders() {
+        const tbody = document.querySelector('#ordersTable tbody');
+        tbody.innerHTML = '<tr><td colspan="8" class="no-data">Loading orders...</td></tr>';
+        try {
+            const res = await fetch('/api/admin/orders', { credentials: 'include' });
+            const orders = await res.json();
+            tbody.innerHTML = '';
+            orders.forEach(order => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>#${order.orderId}</td>
+                    <td>${order.customerName}</td>
+                    <td>${order.customerEmail}</td>
+                    <td>Rs. ${Number(order.totalAmount).toLocaleString('si-LK')}</td>
+                    <td>
+                        <select class="status-select" onchange="updateOrderStatus(${order.orderId}, this.value)">
+                            <option value="PENDING" ${order.orderStatus === 'PENDING' ? 'selected' : ''}>Pending</option>
+                            <option value="CONFIRMED" ${order.orderStatus === 'CONFIRMED' ? 'selected' : ''}>Confirmed</option>
+                            <option value="PROCESSING" ${order.orderStatus === 'PROCESSING' ? 'selected' : ''}>Processing</option>
+                            <option value="SHIPPED" ${order.orderStatus === 'SHIPPED' ? 'selected' : ''}>Shipped</option>
+                            <option value="DELIVERED" ${order.orderStatus === 'DELIVERED' ? 'selected' : ''}>Delivered</option>
+                            <option value="CANCELLED" ${order.orderStatus === 'CANCELLED' ? 'selected' : ''}>Cancelled</option>
+                        </select>
+                    </td>
+                    <td><strong>${order.paymentStatus}</strong></td>
+                    <td>${new Date(order.orderDate).toLocaleString('si-LK')}</td>
+                    <td>
+                        <button class="btn-small btn-refund" onclick="refundOrder(${order.orderId})">Refund</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (err) {
+            console.error(err);
+            tbody.innerHTML = '<tr><td colspan="8" class="no-data" style="color:red;">Failed to load orders.</td></tr>';
+        }
+    }
+
+    async function updateOrderStatus(orderId, newStatus) {
+        if (!confirm(`Change order #${orderId} to ${newStatus}?`)) return;
+        try {
+            const res = await fetch(`/api/admin/orders/${orderId}/status?status=${newStatus}`, {
+                method: 'PUT',
+                credentials: 'include'
+            });
+            if (res.ok) {
+                alert('Status updated!');
+                loadOrders();
+                if (document.getElementById('deliveries').style.display !== 'none') {
+                    loadDeliveries();
+                }
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function refundOrder(orderId) {
+        if (isRefunding) return;
+        if (!confirm('Issue refund for Order #' + orderId + '?')) return;
+        isRefunding = true;
+        try {
+            const res = await fetch(`/api/admin/orders/${orderId}/refund`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            if (res.ok) {
+                alert('✅ Refund processed successfully!');
+                await loadOrders();
+                await loadPayments();
+            } else {
+                const text = await res.text();
+                alert('Refund failed: ' + text);
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Network error while processing refund.');
+        } finally {
+            isRefunding = false;
+        }
+    }
+
+    // ====================== PAYMENTS, PRODUCTS, CATEGORIES, DELIVERIES (Unchanged) ======================
+    async function loadPayments() {
+        const search = document.getElementById('paymentSearch').value.trim();
+        const status = document.getElementById('statusFilter').value;
+        let url = '/api/admin/payments';
+        if (search) url += `?search=${encodeURIComponent(search)}`;
+        try {
+            const res = await fetch(url, { credentials: 'include' });
+            let payments = await res.json();
+            if (status) payments = payments.filter(p => p.status === status);
+            const tbody = document.querySelector('#paymentsTable tbody');
+            tbody.innerHTML = '';
+            payments.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>#${p.paymentId}</td>
+                    <td>#${p.orderId}</td>
+                    <td>Rs. ${Number(p.amount).toLocaleString('si-LK')}</td>
+                    <td><strong style="color:${p.status==='SUCCESS'?'#27ae60':p.status==='FAILED'?'#e74c3c':'#f39c12'}">${p.status}</strong></td>
+                    <td>${p.paymentMethod || 'N/A'}</td>
+                    <td>${p.cardLast4 ? '****' + p.cardLast4 : '-'}</td>
+                    <td>${new Date(p.transactionDate).toLocaleString('si-LK')}</td>
+                    <td>
+                        ${(p.status === 'FAILED' || p.status === 'PENDING' || p.status === 'SUCCESS') ? `<button class="btn-small btn-refund" onclick="refundOrder(${p.orderId}); event.stopImmediatePropagation();">Refund</button>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    async function generateMonthlyReport() {
+        if (!confirm("Generate Monthly Sales Report PDF?")) return;
+        try {
+            const res = await fetch('/api/admin/orders/reports/monthly-sales', { credentials: 'include' });
+            if (!res.ok) throw new Error();
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Anura_Monthly_Report_${new Date().toISOString().slice(0,7)}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+            alert('Report downloaded successfully!');
+        } catch (err) {
+            console.error(err);
+            alert('Failed to generate report.');
+        }
+    }
+
+    async function loadCategories() {
+        const res = await fetch('/api/categories');
+        const cats = await res.json();
+        const sel = document.getElementById('categoryId');
+        sel.innerHTML = '<option value="">Select Category *</option>';
+        cats.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.categoryId;
+            opt.textContent = c.name;
+            sel.appendChild(opt);
+        });
+    }
+
+    async function loadProducts() {
+        const res = await fetch('/api/products');
+        const products = await res.json();
+        let html = '';
+        products.forEach(p => {
+            html += `
+                <div class="product-card">
+                    <img src="${p.imageUrls && p.imageUrls[0] ? p.imageUrls[0] : '/images/placeholder.jpg'}" alt="${p.name}">
+                    <div class="product-info">
+                        <h4>${p.name}</h4>
+                        <p style="color:#e67e22; font-weight:bold;">Rs. ${Number(p.price).toLocaleString('si-LK')}</p>
+                        <button class="btn-edit" onclick="editProduct(${p.productId})">Edit</button>
+                        <button onclick="deleteProduct(${p.productId})" style="background:#e74c3c; color:white; border:none; padding:6px 12px; border-radius:4px;">Delete</button>
+                    </div>
+                </div>`;
+        });
+        document.getElementById('productList').innerHTML = html || '<p class="no-data">No products found.</p>';
+    }
+
+    async function editProduct(id) {
+        editId = id;
+        document.getElementById('submitBtn').textContent = 'Update Product';
+        try {
+            const res = await fetch(`/api/products/${id}`);
+            const p = await res.json();
+            document.getElementById('name').value = p.name || '';
+            document.getElementById('desc').value = p.description || '';
+            document.getElementById('price').value = p.price || '';
+            document.getElementById('stock').value = p.stock || '';
+            document.getElementById('material').value = p.material || '';
+            document.getElementById('color').value = p.color || '';
+            document.getElementById('dimensions').value = p.dimensions || '';
+            document.getElementById('categoryId').value = p.categoryId || '';
+        } catch (e) {
+            alert('Failed to load product');
+        }
+    }
+
+    async function deleteProduct(id) {
+        if (!confirm('Delete this product?')) return;
+        await fetch(`/api/admin/products/${id}`, { method: 'DELETE', credentials: 'include' });
+        loadProducts();
+    }
+
+    async function addCategory() {
+        const name = document.getElementById('catName').value.trim();
+        if (!name) return alert('Enter category name');
+        await fetch('/api/admin/categories', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name }),
+            credentials: 'include'
+        });
+        alert('Category added!');
+        document.getElementById('catName').value = '';
+        loadCategories();
+    }
+
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+        const formData = new FormData();
+        formData.append('name', document.getElementById('name').value.trim());
+        formData.append('description', document.getElementById('desc').value.trim());
+        formData.append('price', document.getElementById('price').value);
+        formData.append('stock', document.getElementById('stock').value);
+        formData.append('material', document.getElementById('material').value.trim());
+        formData.append('color', document.getElementById('color').value.trim());
+        formData.append('dimensions', document.getElementById('dimensions').value.trim());
+        formData.append('categoryId', document.getElementById('categoryId').value);
+        const files = document.getElementById('images').files;
+        for (let file of files) formData.append('images', file);
+        try {
+            const url = editId ? `/api/admin/products/${editId}` : '/api/admin/products';
+            const method = editId ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method,
+                body: formData,
+                credentials: 'include'
+            });
+            if (res.ok) {
+                alert(editId ? 'Product Updated!' : 'Product Added!');
+                document.getElementById('productForm').reset();
+                editId = null;
+                document.getElementById('submitBtn').textContent = 'Add Product';
+                loadProducts();
+            } else {
+                alert('Failed: ' + await res.text());
+            }
+        } catch (err) {
+            alert('Network error');
+        }
+    });
+
+    // ====================== DELIVERY FUNCTIONS ======================
+    async function loadDeliveries() {
+        try {
+            const res = await fetch('/api/admin/deliveries/ready', { credentials: 'include' });
+            const pending = await res.json();
+            let html = '';
+            pending.forEach(o => {
+                html += `<tr>
+                    <td>#${o.orderId}</td>
+                    <td>${o.customerName || 'N/A'}</td>
+                    <td>${new Date(o.createdAt || Date.now()).toLocaleDateString('si-LK')}</td>
+                    <td><button class="btn-small" style="background:#27ae60;color:white;" onclick="openCreateModal(${o.orderId})">Create Delivery</button></td>
+                </tr>`;
+            });
+            document.querySelector('#pendingOrdersTable tbody').innerHTML = html || '<tr><td colspan="4" class="no-data">No confirmed orders pending delivery.</td></tr>';
+        } catch(e){ console.error(e); }
+
+        try {
+            const res = await fetch('/api/admin/deliveries', { credentials: 'include' });
+            const deliveries = await res.json();
+            let html = '';
+            deliveries.forEach(d => {
+                html += `<tr>
+                    <td>#${d.deliveryId}</td>
+                    <td>#${d.orderId}</td>
+                    <td>${d.customerName}</td>
+                    <td><strong>${d.trackingCode || 'N/A'}</strong></td>
+                    <td>${d.deliveryPartner || '-'}</td>
+                    <td>${d.deliveryDate ? new Date(d.deliveryDate).toLocaleDateString('si-LK') : '-'}</td>
+                    <td>${d.status}</td>
+                    <td>
+                        <select class="status-select" onchange="updateDeliveryStatus(${d.deliveryId}, this.value)">
+                            <option value="PENDING" ${d.status==='PENDING'?'selected':''}>Pending</option>
+                            <option value="SHIPPED" ${d.status==='SHIPPED'?'selected':''}>Shipped</option>
+                            <option value="IN_TRANSIT" ${d.status==='IN_TRANSIT'?'selected':''}>In Transit</option>
+                            <option value="DELIVERED" ${d.status==='DELIVERED'?'selected':''}>Delivered</option>
+                            <option value="CANCELLED" ${d.status==='CANCELLED'?'selected':''}>Cancelled</option>
+                        </select>
+                        ${d.status !== 'DELIVERED' && d.status !== 'CANCELLED' ? `<button class="btn-small" style="background:#f39c12; color:white;" onclick="showRescheduleModal(${d.deliveryId})">📅 Reschedule</button>` : ''}
+                        <button class="btn-small btn-refund" onclick="cancelDelivery(${d.deliveryId})">Cancel</button>
+                    </td>
+                </tr>`;
+            });
+            document.querySelector('#deliveriesTable tbody').innerHTML = html || '<tr><td colspan="8" class="no-data">No deliveries found.</td></tr>';
+        } catch(e){ console.error(e); }
+    }
+
+    let currentOrderIdForDelivery = null;
+    function openCreateModal(orderId) {
+        currentOrderIdForDelivery = orderId;
+        document.getElementById('modalOrderId').value = orderId;
+        document.getElementById('modalDate').value = '';
+        document.getElementById('modalPartner').value = '';
+        document.getElementById('createModal').style.display = 'flex';
+    }
+    function closeModal() {
+        document.getElementById('createModal').style.display = 'none';
+    }
+    async function createDelivery() {
+        const date = document.getElementById('modalDate').value;
+        const partner = document.getElementById('modalPartner').value.trim();
+        if (!date || !partner) return alert("Please fill date and partner");
+        try {
+            const res = await fetch(`/api/admin/deliveries/${currentOrderIdForDelivery}/assign`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ deliveryPartner: partner, deliveryDate: date }),
+                credentials: 'include'
+            });
+            if (res.ok) {
+                alert('✅ Delivery created! Tracking code generated and email sent to customer.');
+                closeModal();
+                loadDeliveries();
+            } else {
+                alert('Failed to create delivery');
+            }
+        } catch (err) {
+            alert('Network error');
+        }
+    }
+    async function updateDeliveryStatus(id, status) {
+        if (!confirm(`Update status to ${status}?`)) return;
+        try {
+            await fetch(`/api/admin/deliveries/${id}/status?status=${status}`, {
+                method: 'PUT',
+                credentials: 'include'
+            });
+            loadDeliveries();
+        } catch(e){ console.error(e); }
+    }
+    async function cancelDelivery(id) {
+        if (!confirm('Cancel delivery and notify customer?')) return;
+        try {
+            await fetch(`/api/admin/deliveries/${id}/cancel`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            alert('Delivery cancelled.');
+            loadDeliveries();
+        } catch(e){ console.error(e); }
+    }
+
+    // ====================== TAB SWITCHING ======================
+    document.querySelectorAll('.sidebar a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+            link.classList.add('active');
+            document.querySelectorAll('.profile-section').forEach(s => s.style.display = 'none');
+            const tab = link.getAttribute('data-tab');
+            document.getElementById(tab).style.display = 'block';
+            if (tab === 'products') loadProducts();
+            if (tab === 'categories') loadCategories();
+            if (tab === 'deliveries') loadDeliveries();
+            if (tab === 'offers') loadOffers();
+        });
+    });
+
+    // ====================== OFFERS MANAGEMENT ======================
+    let currentOfferId = null;
+
+    async function loadOffers() {
+        const tbody = document.querySelector('#offersTable tbody');
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;">Loading offers...</td></tr>';
+        try {
+            const res = await fetch('/api/admin/offers', { credentials: 'include' });
+            if (!res.ok) throw new Error('Failed to load');
+            const offers = await res.json();
+            tbody.innerHTML = '';
+            if (offers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="no-data">No offers created yet.</td></tr>';
+                return;
+            }
+            offers.forEach(offer => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${offer.title}</strong></td>
+                    <td><span style="color:#e74c3c; font-weight:bold;">${offer.discountPercentage}% OFF</span></td>
+                    <td>${offer.startDate || '-'}</td>
+                    <td>${offer.endDate || '-'}</td>
+                    <td><span style="padding:4px 12px; border-radius:20px; background:${offer.isActive ? '#27ae60' : '#95a5a6'}; color:white; font-size:0.9rem;">
+                        ${offer.isActive ? 'Active' : 'Inactive'}
+                    </span></td>
+                    <td>
+                        <button class="btn-small" style="background:#3498db;" onclick="editOffer(${offer.offerId})">Edit</button>
+                        <button class="btn-small" style="background:#e67e22;" onclick="assignProductsToOffer(${offer.offerId})">Assign Products</button>
+                        <button class="btn-small btn-refund" onclick="deleteOffer(${offer.offerId})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (err) {
+            console.error(err);
+            tbody.innerHTML = '<tr><td colspan="6" style="color:#e74c3c; text-align:center;">Error loading offers</td></tr>';
+        }
+    }
+
+    function showAddOfferModal() {
+        currentOfferId = null;
+        document.getElementById('offerModalTitle').textContent = 'Create New Offer';
+        document.getElementById('offerForm').reset();
+        document.getElementById('offerModal').style.display = 'flex';
+    }
+
+    async function editOffer(id) {
+        currentOfferId = id;
+        document.getElementById('offerModalTitle').textContent = 'Edit Offer';
+        try {
+            const res = await fetch('/api/admin/offers', { credentials: 'include' });
+            const offers = await res.json();
+            const offer = offers.find(o => o.offerId === id);
+            if (offer) {
+                document.getElementById('offerTitle').value = offer.title;
+                document.getElementById('offerDesc').value = offer.description || '';
+                document.getElementById('discount').value = offer.discountPercentage;
+                document.getElementById('startDate').value = offer.startDate;
+                document.getElementById('endDate').value = offer.endDate;
+                document.getElementById('isActive').checked = offer.isActive;
+            }
+        } catch(e) {}
+        document.getElementById('offerModal').style.display = 'flex';
+    }
+
+    async function saveOffer() {
+        const req = {
+            title: document.getElementById('offerTitle').value.trim(),
+            description: document.getElementById('offerDesc').value.trim(),
+            discountPercentage: parseFloat(document.getElementById('discount').value),
+            startDate: document.getElementById('startDate').value,
+            endDate: document.getElementById('endDate').value,
+            isActive: document.getElementById('isActive').checked
+        };
+        if (!req.title || !req.discountPercentage) {
+            alert("Title and Discount % are required");
+            return;
+        }
+        try {
+            const url = currentOfferId ? `/api/admin/offers/${currentOfferId}` : '/api/admin/offers';
+            const method = currentOfferId ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(req)
+            });
+            if (res.ok) {
+                alert(currentOfferId ? 'Offer updated!' : 'Offer created successfully!');
+                document.getElementById('offerModal').style.display = 'none';
+                loadOffers();
+            } else {
+                alert('Failed to save offer');
+            }
+        } catch (err) {
+            alert('Network error');
+        }
+    }
+
+    async function deleteOffer(id) {
+        if (!confirm('Delete this offer permanently?')) return;
+        try {
+            const res = await fetch(`/api/admin/offers/${id}`, { method: 'DELETE', credentials: 'include' });
+            if (res.ok) { loadOffers(); }
+        } catch(e) {}
+    }
+
+    // ==================== IMPROVED ASSIGN PRODUCTS ====================
+    async function assignProductsToOffer(offerId) {
+        currentOfferId = offerId;
+        document.getElementById('assignModal').style.display = 'flex';
+        await loadProductsForAssignment(offerId);
+    }
+
+    async function loadProductsForAssignment(offerId) {
+        const container = document.getElementById('productListAssign');
+        container.innerHTML = 'Loading products...';
+
+        try {
+            // Get ALL products + already assigned products
+            const [productsRes, assignedRes] = await Promise.all([
+                fetch('/api/products'),
+                fetch(`/api/offers/products/${offerId}`)
+            ]);
+
+            const allProducts = await productsRes.json();
+            const assignedProducts = await assignedRes.json();
+            const assignedIds = new Set(assignedProducts.map(p => p.productId));
+
+            let html = '';
+            allProducts.forEach(p => {
+                const isAlreadyAssigned = assignedIds.has(p.productId);
+                html += `
+                    <div style="display:flex; align-items:center; gap:12px; padding:12px; border-bottom:1px solid #eee;">
+                        <img src="${p.imageUrls?.[0] || '/images/placeholder.jpg'}"
+                             style="width:60px; height:60px; object-fit:cover; border-radius:6px;">
+                        <div style="flex:1;">
+                            <strong>${p.name}</strong><br>
+                            <small>Rs. ${Number(p.price).toLocaleString('si-LK')}</small>
+                        </div>
+                        <button onclick="assignProductToOffer(${p.productId}, this)"
+                                style="padding:10px 20px; background:${isAlreadyAssigned ? '#95a5a6' : '#27ae60'}; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:500;">
+                            ${isAlreadyAssigned ? 'Already Assigned' : 'Assign Product'}
+                        </button>
+                    </div>`;
+            });
+
+            container.innerHTML = html || '<p>No products found</p>';
+        } catch(e) {
+            console.error(e);
+            container.innerHTML = '<p style="color:red;">Failed to load products. Please try again.</p>';
+        }
+    }
+
+    async function assignProductToOffer(productId, btn) {
+        const isAlreadyAssigned = btn.textContent.includes('Already Assigned');
+
+        if (isAlreadyAssigned) {
+            if (!confirm("This product is already assigned to this offer.\n\nDo you want to assign it again?")) {
+                return;
+            }
+        }
+
+        try {
+            const res = await fetch(`/api/admin/offers/${currentOfferId}/assign`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(productId)
+            });
+
+            if (res.ok) {
+                btn.textContent = 'Assigned ✓';
+                btn.style.background = '#95a5a6';
+                alert('Product assigned successfully!');
+                // Refresh the list so status updates
+                await loadProductsForAssignment(currentOfferId);
+            } else {
+                const text = await res.text();
+                alert('Failed: ' + text);
+            }
+        } catch(e) {
+            alert('Network error while assigning product');
+        }
+    }
+
+
+        // Tab switching already exists - just make sure loadReviews is called
+        // Add this inside your existing sidebar click handler (or add separately):
+
+        // Load reviews when Reviews tab is clicked
+        function loadReviews() {
+        const tbody = document.querySelector('#reviewsTable tbody');
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;">Loading feedbacks...</td></tr>`;
+
+        fetch('/api/admin/reviews', { credentials: 'include' })
+        .then(res => res.json())
+        .then(reviews => {
+        tbody.innerHTML = '';
+        reviews.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+                    <td>${r.reviewId}</td>
+                    <td>${r.productName}</td>
+                    <td>${r.userName}</td>
+                    <td>${'★'.repeat(r.rating)}</td>
+                    <td style="max-width:300px; white-space:pre-wrap;">${r.comment || '(no comment)'}</td>
+                    <td>${new Date(r.createdAt).toLocaleDateString('en-GB')}</td>
+                    <td>
+                        <button class="btn-small btn-edit" onclick="editReview(${r.reviewId}, ${r.rating}, '${r.comment || ''}')">Edit</button>
+                        <button class="btn-small btn-refund" onclick="deleteReview(${r.reviewId})">Delete</button>
+                    </td>
+                `;
+        tbody.appendChild(tr);
+    });
+        if (reviews.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:#777;">No reviews yet.</td></tr>`;
+    }
+    })
+        .catch(() => {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:red;padding:40px;">Failed to load reviews</td></tr>`;
+    });
+    }
+
+        // Edit
+        function editReview(id, rating, comment) {
+        document.getElementById('editReviewId').value = id;
+        document.getElementById('editRating').value = rating;
+        document.getElementById('editComment').value = comment;
+        document.getElementById('editReviewModal').style.display = 'flex';
+    }
+
+        function saveReviewEdit() {
+        const id = document.getElementById('editReviewId').value;
+        const payload = {
+        rating: parseInt(document.getElementById('editRating').value),
+        comment: document.getElementById('editComment').value.trim()
+    };
+
+        fetch(`/api/admin/reviews/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        credentials: 'include'
+    })
+        .then(() => {
+        closeReviewModal();
+        loadReviews();
+    });
+    }
+
+        function closeReviewModal() {
+        document.getElementById('editReviewModal').style.display = 'none';
+    }
+
+        // Delete
+        function deleteReview(id) {
+        if (!confirm('Delete this review permanently?')) return;
+        fetch(`/api/admin/reviews/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+    }).then(() => loadReviews());
+    }
+
+        // Generate PDF Report
+        function generateFeedbackReport() {
+        fetch('/api/admin/reviews/reports/feedback', { credentials: 'include' })
+            .then(res => {
+                if (!res.ok) throw new Error();
+                return res.blob();
+            })
+            .then(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Anura_Feedback_Report_${new Date().toISOString().slice(0,10)}.pdf`;
+                a.click();
+                URL.revokeObjectURL(url);
+            })
+            .catch(() => alert('Failed to generate report'));
+    }
+
+        // Make sure loadReviews is called when Reviews tab opens
+        // (add this to your existing tab click handler)
+        document.querySelectorAll('.sidebar a[data-tab="reviews"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            // ... existing tab code ...
+            if (this.getAttribute('data-tab') === 'reviews') {
+                loadReviews();
+            }
+        });
+    });
+
+
+    // Close modals when clicking outside
+    window.onclick = function(event) {
+        const offerModal = document.getElementById('offerModal');
+        const assignModal = document.getElementById('assignModal');
+        if (event.target === offerModal) offerModal.style.display = 'none';
+        if (event.target === assignModal) assignModal.style.display = 'none';
+    };
+
+    // ====================== Initialize ======================
+    window.onload = async () => {
+        await checkAdmin();
+        await loadCategories();
+        await loadProducts();
+        await loadOrders();
+        await loadPayments();
+    };
+</script>
+
+<!-- Reschedule Delivery Modal -->
+<div id="rescheduleModal" class="modal">
+    <div class="modal-content">
+        <h3>📅 Reschedule Delivery</h3>
+        <p id="rescheduleOrderInfo" style="margin-bottom:15px;">Select a new future delivery date:</p>
+        <label><strong>New Delivery Date:</strong></label>
+        <input type="date" id="newDeliveryDate" style="width:100%; padding:10px; margin:10px 0 20px 0;" required>
+        <div style="text-align:right;">
+            <button onclick="closeRescheduleModal()" style="margin-right:10px; padding:10px 18px; background:#95a5a6; color:white; border:none; border-radius:6px;"> Cancel </button>
+            <button onclick="confirmReschedule()" style="padding:10px 18px; background:#e67e22; color:white; border:none; border-radius:6px; font-weight:600;"> Reschedule & Notify Customer </button>
+        </div>
+        <div id="rescheduleMsg" style="margin-top:15px; text-align:center; font-weight:500;"></div>
+    </div>
+</div>
+
+<!-- Edit Review Modal -->
+<div id="editReviewModal" class="modal" style="display:none;">
+    <div class="modal-content" style="width:480px;">
+        <h3>Edit Customer Review</h3>
+        <input type="hidden" id="editReviewId">
+
+        <label style="display:block;margin:12px 0 4px;">Rating (1-5)</label>
+        <input type="number" id="editRating" min="1" max="5" style="width:100%; padding:10px; border-radius:6px;" required>
+
+        <label style="display:block;margin:12px 0 4px;">Comment</label>
+        <textarea id="editComment" rows="5" style="width:100%; padding:10px; border-radius:6px;" required></textarea>
+
+        <div style="margin-top:20px; text-align:right;">
+            <button onclick="closeReviewModal()" style="margin-right:10px; padding:8px 20px;">Cancel</button>
+            <button onclick="saveReviewEdit()" class="btn-primary" style="padding:8px 24px;">Save Changes</button>
+        </div>
+    </div>
+</div>
+<!-- Reply Modal -->
+<div id="replyModal" class="modal">
+    <div class="modal-content">
+        <h2>Reply to Ticket <span id="modalTicketCode" style="color:#e67e22;"></span></h2>
+
+        <div id="ticketDetails" style="margin:15px 0; padding:15px; background:#f8f9fa; border-radius:8px; font-size:0.95rem;"></div>
+
+        <textarea id="replyMessage" rows="6" placeholder="Type your reply to the customer..."
+                  style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; resize:vertical;"></textarea>
+
+        <div style="margin-top:20px; text-align:right;">
+            <button onclick="closeReplyModal()" style="padding:10px 20px; margin-right:10px; background:#95a5a6; color:white; border:none; border-radius:6px;">Cancel</button>
+            <button onclick="sendReply()" style="padding:10px 24px; background:#27ae60; color:white; border:none; border-radius:6px;">Send Reply</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Load all tickets for admin
+    async function loadAllTickets() {
+        const tbody = document.querySelector("#ticketsTable tbody");
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;">Loading tickets...</td></tr>`;
+
+        const searchTerm = document.getElementById("ticketSearch").value.trim();
+        let url = "/api/admin/tickets";
+        if (searchTerm) url += `?search=${encodeURIComponent(searchTerm)}`;
+
+        try {
+            const res = await fetch(url, { credentials: 'include' });
+            const tickets = await res.json();
+
+            let html = "";
+            tickets.forEach(t => {
+                html += `
+                <tr>
+                    <td><strong>${t.ticketCode}</strong></td>
+                    <td>${t.customerName}</td>
+                    <td>${t.subject}</td>
+                    <td>${t.requestType || 'General'}</td>
+                    <td>
+                        <select onchange="updateTicketStatus(${t.ticketId}, this.value)" class="status-select">
+                            <option value="OPEN" ${t.status==='OPEN' ? 'selected' : ''}>Open</option>
+                            <option value="IN_PROGRESS" ${t.status==='IN_PROGRESS' ? 'selected' : ''}>In Progress</option>
+                            <option value="RESOLVED" ${t.status==='RESOLVED' ? 'selected' : ''}>Resolved</option>
+                            <option value="CLOSED" ${t.status==='CLOSED' ? 'selected' : ''}>Closed</option>
+                        </select>
+                    </td>
+                    <td>${new Date(t.createdAt).toLocaleDateString('en-GB')}</td>
+                    <td>
+                        <button onclick="openReplyModal(${t.ticketId}, '${t.ticketCode}')"
+                                style="background:#3498db; color:white; padding:6px 12px; border:none; border-radius:4px; cursor:pointer;">
+                            Reply
+                        </button>
+                    </td>
+                </tr>`;
+            });
+
+            tbody.innerHTML = html || `<tr><td colspan="7" style="text-align:center;color:#777;">No tickets found.</td></tr>`;
+        } catch(e) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:red;">Failed to load tickets.</td></tr>`;
+        }
+    }
+
+    let currentTicketId = null;
+
+    function openReplyModal(ticketId, ticketCode) {
+        currentTicketId = ticketId;
+        document.getElementById("modalTicketCode").textContent = ticketCode;
+        document.getElementById("replyModal").style.display = "flex";
+        document.getElementById("replyMessage").focus();
+    }
+
+    function closeReplyModal() {
+        document.getElementById("replyModal").style.display = "none";
+        document.getElementById("replyMessage").value = "";
+    }
+
+    async function sendReply() {
+        const message = document.getElementById("replyMessage").value.trim();
+        if (!message) return alert("Please type a reply");
+
+        try {
+            const res = await fetch(`/api/admin/tickets/${currentTicketId}/reply`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: message })
+            });
+
+            if (res.ok) {
+                alert("Reply sent successfully!");
+                closeReplyModal();
+                loadAllTickets();
+            } else {
+                alert("Failed to send reply");
+            }
+        } catch(e) {
+            alert("Network error");
+        }
+    }
+
+    async function updateTicketStatus(ticketId, status) {
+        try {
+            await fetch(`/api/admin/tickets/${ticketId}/status?status=${status}`, {
+                method: "PUT",
+                credentials: "include"
+            });
+        } catch(e) {
+            console.error("Status update failed");
+        }
+    }
+
+    // Auto load tickets when admin clicks on "Support Tickets" tab
+    document.querySelector('[data-tab="tickets"]').addEventListener("click", loadAllTickets);
+</script>
+
+</body>
+</html>

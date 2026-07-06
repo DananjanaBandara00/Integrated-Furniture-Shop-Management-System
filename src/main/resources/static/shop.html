@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="nav.shop">Shop - Anura Furnitures</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px 30px; }
+
+        .filter-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px 28px;
+            align-items: flex-end;
+            background: #fffef9;
+            padding: 28px;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(200,169,81,0.08);
+            border: 1px solid #f0e8d0;
+            margin: 24px 0 36px;
+        }
+
+        .filter-group { flex: 1; min-width: 180px; }
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #5D4037;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 14px 20px;
+            font-size: 1.05rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            outline: none;
+        }
+        .search-bar:focus {
+            border-color: #C8A951;
+            box-shadow: 0 0 0 3px rgba(200,169,81,0.15);
+        }
+
+        .filter-group input[type="number"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        .filter-group input[type="number"]::-webkit-outer-spin-button,
+        .filter-group input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 12px;
+            align-self: flex-end;
+            min-width: 280px;
+        }
+
+        .sort-select {
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: white;
+        }
+
+        .btn-clear, .btn-primary {
+            padding: 12px 28px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .btn-clear {
+            background: #f3f4f6;
+            color: #4b5563;
+            border: 1px solid #d1d5db;
+        }
+        .btn-clear:hover { background: #e5e7eb; }
+
+        .category-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 20px 0 32px;
+        }
+        .category-bar button {
+            padding: 10px 22px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .category-bar button:hover,
+        .category-bar button.active {
+            background: #C8A951;
+            color: white;
+            border-color: #C8A951;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 28px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+        }
+        .product-card img {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+        }
+        .product-info {
+            padding: 16px;
+        }
+        .price {
+            color: #C8A951;
+            font-size: 1.55rem;
+            font-weight: 700;
+            margin: 10px 0 6px;
+        }
+        .rating {
+            color: #C8A951;
+            font-size: 1.1rem;
+        }
+
+        .no-products, .loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 100px 20px;
+            font-size: 1.3rem;
+            color: #777;
+        }
+        .loading::before {
+            content: "↻";
+            display: inline-block;
+            animation: spin 1.5s linear infinite;
+            margin-right: 12px;
+            font-size: 1.6rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 992px) {
+            .filter-section { gap: 16px 20px; }
+        }
+        @media (max-width: 768px) {
+            .filter-section { flex-direction: column; align-items: stretch; }
+            .filter-actions { flex-direction: column; width: 100%; }
+            .btn-clear, .btn-primary { width: 100%; }
+            .sort-select { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==================== NAVBAR ==================== -->
+<div class="top-navbar">
+    <div class="logo">Anura Furnitures</div>
+    <div class="navbar-right" id="auth-section"></div>
+</div>
+
+<div class="second-navbar">
+    <a href="/shop.html" class="dropdown">
+        ☰ All Categories
+        <div class="dropdown-content">
+            <a href="/shop.html?category=living">Living Room Furniture</a>
+            <a href="/shop.html?category=bedroom">Bedroom Furniture</a>
+            <a href="/shop.html?category=dining">Dining Room Furniture</a>
+            <a href="/shop.html?category=office">Office Furniture</a>
+            <a href="/shop.html?category=outdoor">Outdoor Furniture</a>
+            <a href="/shop.html?category=kids">Kids Furniture</a>
+        </div>
+    </a>
+    <a href="/shop.html?new=true">New Arrivals</a>
+    <a href="/shop.html?best=true">Best Sellers</a>
+    <a href="/shop.html?offers=true">Special Offers</a>
+    <a href="#">Custom Furniture</a>
+    <a href="#">Bulk Orders</a>
+    <a href="#">Customer Reviews</a>
+</div>
+
+<div class="utility-bar">
+    <div>
+        📦 <strong>Track Your Order</strong>  | 
+        📞 Call Us: <strong>+94 778 825 325</strong>
+    </div>
+    <div>
+        📍 Showroom Locations  | 
+        🚚 Free Delivery on Orders Above Rs. 50,000
+    </div>
+</div>
+
+<!-- ==================== MAIN SHOP CONTENT ==================== -->
+<div class="container">
+    <div class="filter-section">
+        <div class="filter-group" style="flex: 2; min-width: 260px;">
+            <label for="filter-search" data-i18n="shop.search.label">Product name</label>
+            <input type="text" id="filter-search" class="search-bar"
+                   placeholder="Search products..." onkeyup="if(event.key === 'Enter') applyFilters()">
+        </div>
+
+        <div class="filter-group">
+            <label for="minPrice" data-i18n="shop.minprice">Min Price (Rs.)</label>
+            <input type="number" id="minPrice" min="0" placeholder="0">
+        </div>
+
+        <div class="filter-group">
+            <label for="maxPrice" data-i18n="shop.maxprice">Max Price (Rs.)</label>
+            <input type="number" id="maxPrice" min="0" placeholder="100000">
+        </div>
+
+        <div class="filter-group">
+            <label for="sortBy" data-i18n="shop.sortby">Sort by</label>
+            <select id="sortBy" class="sort-select">
+                <option value="default">Default</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="newest">Newest First</option>
+                <option value="rating-desc">Highest Rated</option>
+            </select>
+        </div>
+
+        <div class="filter-actions">
+            <button onclick="applyFilters()" class="btn-primary" data-i18n="shop.apply">Apply Filters</button>
+            <button onclick="clearFilters()" class="btn-clear" data-i18n="shop.clear">Clear</button>
+        </div>
+    </div>
+
+    <div class="category-bar" id="categoryBar"></div>
+
+    <div class="product-grid" id="productGrid">
+        <div class="loading" data-i18n="shop.loading">Loading products...</div>
+    </div>
+</div>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/main.js"></script>
+<script>
+    // Global filter state
+    let currentCategoryId = null;
+    let currentSearchTerm = '';
+    let currentSort = 'default';
+
+    // Load categories
+    async function loadCategories() {
+        try {
+            const res = await fetch('/api/categories');
+            if (!res.ok) throw new Error('Failed to load categories');
+            const cats = await res.json();
+
+            const bar = document.getElementById('categoryBar');
+            bar.innerHTML = `<button class="active" onclick="filterByCategory(null)">${window.t('shop.allproducts') || 'All Products'}</button>`;
+
+            cats.forEach(c => {
+                const btn = document.createElement('button');
+                btn.textContent = c.name;
+                btn.dataset.categoryId = c.categoryId;
+                btn.onclick = () => filterByCategory(c.categoryId);
+                bar.appendChild(btn);
+            });
+        } catch (err) {
+            console.error(err);
+            document.getElementById('categoryBar').innerHTML = '<p style="color:#c0392b;">Failed to load categories</p>';
+        }
+    }
+
+    function filterByCategory(catId) {
+        currentCategoryId = catId;
+        currentSearchTerm = '';
+        document.getElementById('filter-search').value = '';
+        document.querySelectorAll('.category-bar button').forEach(b => b.classList.remove('active'));
+        if (catId === null) {
+            document.querySelector('.category-bar button').classList.add('active');
+        } else {
+            const btn = document.querySelector(`[data-category-id="${catId}"]`);
+            if (btn) btn.classList.add('active');
+        }
+        applyFilters();
+    }
+
+    function highlightAllCategories() {
+        document.querySelectorAll('.category-bar button').forEach(b => b.classList.remove('active'));
+        document.querySelector('.category-bar button').classList.add('active');
+    }
+
+    function viewProduct(id) {
+        window.location.href = `/product-details.html?id=${id}`;
+    }
+
+    async function applyFilters() {
+        const grid = document.getElementById('productGrid');
+        grid.innerHTML = '<div class="loading">Loading products...</div>';
+
+        const searchTerm = document.getElementById('filter-search').value.trim();
+        if (searchTerm) currentSearchTerm = searchTerm;
+
+        const min = document.getElementById('minPrice').value.trim();
+        const max = document.getElementById('maxPrice').value.trim();
+        currentSort = document.getElementById('sortBy').value;
+
+        const params = new URLSearchParams();
+        if (currentSearchTerm) params.append('q', currentSearchTerm);
+        if (currentCategoryId !== null) params.append('categoryId', currentCategoryId);
+        if (min && !isNaN(min)) params.append('minPrice', min);
+        if (max && !isNaN(max)) params.append('maxPrice', max);
+
+        let url = '/api/products';
+        if (params.toString()) url += '?' + params.toString();
+
+        try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('Failed to load products');
+            let products = await res.json();
+
+            // Client-side sorting (since backend doesn't support sort yet)
+            if (currentSort !== 'default') {
+                products = products.sort((a, b) => {
+                    if (currentSort === 'price-asc')  return a.price - b.price;
+                    if (currentSort === 'price-desc') return b.price - a.price;
+                    if (currentSort === 'newest')     return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+                    if (currentSort === 'rating-desc') return (b.averageRating || 0) - (a.averageRating || 0);
+                    return 0;
+                });
+            }
+
+            let html = '';
+            if (products.length === 0) {
+                html = `
+                <p class="no-products">
+                    ${window.t('shop.noproducts') || 'No products found matching your criteria.'}<br>
+                    <small>Try adjusting filters or search terms.</small>
+                </p>`;
+            } else {
+                products.forEach(p => {
+                    const rating = p.averageRating ? `★ ${p.averageRating.toFixed(1)}` : '';
+                    html += `
+                <div class="product-card" onclick="viewProduct(${p.productId})">
+                    <img src="${p.imageUrls?.[0] || '/images/placeholder.jpg'}" alt="${p.name}">
+                    <div class="product-info">
+                        <h4>${p.name}</h4>
+                        <p class="price">Rs. ${Number(p.price).toLocaleString('si-LK')}</p>
+                        ${rating ? `<p class="rating">${rating}</p>` : ''}
+                    </div>
+                </div>`;
+                });
+            }
+            grid.innerHTML = html;
+        } catch (err) {
+            console.error(err);
+            grid.innerHTML = '<p class="no-products">Error loading products. Please try again later.</p>';
+        }
+    }
+
+    function clearFilters() {
+        currentSearchTerm = '';
+        currentCategoryId = null;
+        currentSort = 'default';
+        document.getElementById('filter-search').value = '';
+        document.getElementById('minPrice').value = '';
+        document.getElementById('maxPrice').value = '';
+        document.getElementById('sortBy').value = 'default';
+        highlightAllCategories();
+        applyFilters();
+    }
+
+    // Page load
+    window.onload = async () => {
+        await applyLanguage();
+        await checkAuth();
+        await loadCategories();
+        await applyFilters();
+        // loadCartCount() is already called in checkAuth if logged in
+    };
+</script>
+</body>
+</html>
